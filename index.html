@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Smart Wardrobe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .slide-transition {
+            transition: transform 0.5s ease-in-out;
+        }
+        .outfit-card {
+            transition: all 0.3s ease;
+        }
+        .outfit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-600">
+                Smart Wardrobe Assistant
+            </h1>
+        </header>
+
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto">
+            <!-- Tabs -->
+            <div class="flex mb-6 gap-4 justify-center">
+                <button onclick="switchTab('catalogue')" id="catalogueTab" class="px-6 py-2 rounded-full bg-indigo-600 text-white">My Catalogue</button>
+                <button onclick="switchTab('outfit')" id="outfitTab" class="px-6 py-2 rounded-full bg-gray-200">Outfit Generator</button>
+                <button onclick="switchTab('fabric')" id="fabricTab" class="px-6 py-2 rounded-full bg-gray-200">Fabric Guide</button>
+            </div>
+
+            <!-- Catalogue Section -->
+            <div id="catalogueSection" class="space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-indigo-600 mb-4">Add New Item</h2>
+                    <form id="wardrobeForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" id="itemName" placeholder="Item Name" class="p-2 border rounded" required>
+                            <select id="category" class="p-2 border rounded" required>
+                                <option value="">Select Category</option>
+                                <option value="tops">Tops</option>
+                                <option value="bottoms">Bottoms</option>
+                                <option value="dresses">Dresses</option>
+                                <option value="outerwear">Outerwear</option>
+                                <option value="accessories">Accessories</option>
+                            </select>
+                            <input type="text" id="fabric" placeholder="Fabric Type" class="p-2 border rounded" required>
+                            <input type="text" id="color" placeholder="Color" class="p-2 border rounded" required>
+                            <input type="text" id="season" placeholder="Season (Summer/Winter/All)" class="p-2 border rounded">
+                            <input type="file" id="itemImage" accept="image/*" class="p-2 border rounded">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">
+                            Add to Wardrobe
+                        </button>
+                    </form>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="wardrobeDisplay"></div>
+            </div>
+
+            <!-- Outfit Generator Section -->
+            <div id="outfitSection" class="hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-indigo-600 mb-4">Today's Outfit Suggestions</h2>
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="generateOutfit()" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                            Generate New Outfit
+                        </button>
+                        <select id="seasonFilter" onchange="generateOutfit()" class="p-2 border rounded">
+                            <option value="all">All Seasons</option>
+                            <option value="summer">Summer</option>
+                            <option value="winter">Winter</option>
+                        </select>
+                    </div>
+                    <div id="outfitDisplay" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- Fabric Guide Section -->
+            <div id="fabricSection" class="hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold text-indigo-600 mb-4">Fabric Sourcing Guide</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="fabricGuide"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wardrobe = [];
+        const fabricGuide = [
+            {
+                name: 'Cotton',
+                sources: ['Local Markets', 'Sustainable Suppliers', 'Online Retailers'],
+                properties: 'Breathable, Comfortable, Easy to maintain',
+                sustainable: true
+            },
+            {
+                name: 'Linen',
+                sources: ['Specialty Stores', 'Eco-friendly Suppliers', 'Artisan Markets'],
+                properties: 'Durable, Gets softer with wear, Natural cooling',
+                sustainable: true
+            },
+            {
+                name: 'Silk',
+                sources: ['Luxury Retailers', 'Direct Importers', 'Specialty Boutiques'],
+                properties: 'Luxurious feel, Temperature regulating, Delicate',
+                sustainable: true
+            }
+        ];
+
+        function switchTab(tab) {
+            document.getElementById('catalogueSection').classList.add('hidden');
+            document.getElementById('outfitSection').classList.add('hidden');
+            document.getElementById('fabricSection').classList.add('hidden');
+            document.getElementById(`${tab}Section`).classList.remove('hidden');
+
+            // Update tab styles
+            document.querySelectorAll('button').forEach(btn => btn.classList.replace('bg-indigo-600', 'bg-gray-200'));
+            document.querySelectorAll('button').forEach(btn => btn.classList.replace('text-white', 'text-gray-700'));
+            document.getElementById(`${tab}Tab`).classList.replace('bg-gray-200', 'bg-indigo-600');
+            document.getElementById(`${tab}Tab`).classList.add('text-white');
+        }
+
+        document.getElementById('wardrobeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newItem = {
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('category').value,
+                fabric: document.getElementById('fabric').value,
+                color: document.getElementById('color').value,
+                season: document.getElementById('season').value.toLowerCase(),
+                image: document.getElementById('itemImage').files[0] ? URL.createObjectURL(document.getElementById('itemImage').files[0]) : null
+            };
+
+            wardrobe.push(newItem);
+            displayWardrobe();
+            this.reset();
+        });
+
+        function displayWardrobe() {
+            const display = document.getElementById('wardrobeDisplay');
+            display.innerHTML = '';
+
+            wardrobe.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'outfit-card bg-white p-4 rounded-lg shadow-md';
+                card.innerHTML = `
+                    ${item.image ? 
+                        `<img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover rounded mb-4">` : 
+                        `<div class="w-full h-48 bg-gray-100 rounded mb-4 flex items-center justify-center">
+                            <i class="bi bi-image text-4xl text-gray-400"></i>
+                        </div>`
+                    }
+                    <h3 class="font-semibold text-indigo-600">${item.name}</h3>
+                    <p class="text-sm text-gray-600">Category: ${item.category}</p>
+                    <p class="text-sm text-gray-600">Fabric: ${item.fabric}</p>
+                    <p class="text-sm text-gray-600">Color: ${item.color}</p>
+                    <p class="text-sm text-gray-600">Season: ${item.season || 'All seasons'}</p>
+                    <button onclick="deleteItem(${index})" class="mt-2 text-red-500 hover:text-red-600">
+                        <i class="bi bi-trash"></i> Remove
+                    </button>
+                `;
+                display.appendChild(card);
+            });
+        }
+
+        function generateOutfit() {
+            const outfitDisplay = document.getElementById('outfitDisplay');
+            outfitDisplay.innerHTML = '';
+            
+            const season = document.getElementById('seasonFilter').value;
+            const filteredWardrobe = season === 'all' ? 
+                wardrobe : 
+                wardrobe.filter(item => item.season === season || !item.season);
+
+            const tops = filteredWardrobe.filter(item => item.category === 'tops');
+            const bottoms = filteredWardrobe.filter(item => item.category === 'bottoms');
+            const accessories = filteredWardrobe.filter(item => item.category === 'accessories');
+
+            if (tops.length && bottoms.length) {
+                const outfit = {
+                    top: tops[Math.floor(Math.random() * tops.length)],
+                    bottom: bottoms[Math.floor(Math.random() * bottoms.length)],
+                    accessory: accessories.length ? accessories[Math.floor(Math.random() * accessories.length)] : null
+                };
+
+                Object.entries(outfit).forEach(([type, item]) => {
+                    if (item) {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white p-4 rounded-lg shadow-md';
+                        card.innerHTML = `
+                            ${item.image ? 
+                                `<img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover rounded mb-4">` : 
+                                `<div class="w-full h-48 bg-gray-100 rounded mb-4 flex items-center justify-center">
+                                    <i class="bi bi-image text-4xl text-gray-400"></i>
+                                </div>`
+                            }
+                            <h3 class="font-semibold text-indigo-600">${item.name}</h3>
+                            <p class="text-sm text-gray-600">Category: ${type}</p>
+                        `;
+                        outfitDisplay.appendChild(card);
+                    }
+                });
+            } else {
+                outfitDisplay.innerHTML = '<p class="text-gray-600">Add more items to generate outfits!</p>';
+            }
+        }
+
+        function loadFabricGuide() {
+            const guideContainer = document.getElementById('fabricGuide');
+            fabricGuide.forEach(fabric => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-lg shadow-md';
+                card.innerHTML = `
+                    <h3 class="font-semibold text-indigo-600">${fabric.name}</h3>
+                    <p class="text-sm text-gray-600 mt-2">Properties: ${fabric.properties}</p>
+                    <p class="text-sm text-gray-600 mt-2">Where to find:</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600">
+                        ${fabric.sources.map(source => `<li>${source}</li>`).join('')}
+                    </ul>
+                    ${fabric.sustainable ? '<span class="text-green-500 text-xs mt-2 block">✓ Sustainable Option</span>' : ''}
+                `;
+                guideContainer.appendChild(card);
+            });
+        }
+
+        function deleteItem(index) {
+            wardrobe.splice(index, 1);
+            displayWardrobe();
+        }
+
+        // Initialize
+        loadFabricGuide();
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
